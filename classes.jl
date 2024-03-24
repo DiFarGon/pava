@@ -1,6 +1,7 @@
 module MetaJulia
 
 scope = [Dict()]
+cur_scope = 1
 
 function metajulia_repl()
   println("Welcome to MetaJulia REPL")
@@ -31,9 +32,9 @@ function metajulia_eval(expr)
     return expr
   end
   if typeof(expr) == Symbol
-    for i in length(scope):-1:1
-      if haskey(scope[i], expr)
-        d = scope[i]
+    for i in length(MetaJulia.scope):-1:1
+      if haskey(MetaJulia.scope[i], expr)
+        d = MetaJulia.scope[i]
         return d[expr]
       end
     end
@@ -85,18 +86,32 @@ function metajulia_eval(expr)
     end
     if expr.head == :(=)
       value = metajulia_eval(expr.args[2])
-      scope[end][expr.args[1]] = value
+      MetaJulia.scope[MetaJulia.cur_scope][expr.args[1]] = value
       return value
     end
     if expr.head == :let
-      push!(scope, Dict())
+      MetaJulia.cur_scope += 1
+      push!(MetaJulia.scope, Dict())
       for arg in expr.args[1:end-1]
         if typeof(arg) != LineNumberNode
           metajulia_eval(arg)
         end
       end
       last = metajulia_eval(expr.args[end])
-      pop!(scope)
+      pop!(MetaJulia.scope)
+      MetaJulia.cur_scope -= 1
+      return last
+    end
+    if expr.head == :global
+      prev_scope = MetaJulia.cur_scope
+      MetaJulia.cur_scope = 1
+      for arg in expr.args[1:end-1]
+        if typeof(arg) != LineNumberNode
+          metajulia_eval(arg)
+        end
+      end
+      last = metajulia_eval(expr.args[end])
+      MetaJulia.cur_scope = prev_scope
       return last
     end
   end
