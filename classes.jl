@@ -5,10 +5,11 @@ cur_scope = 1
 
 function metajulia_repl()
   println("Welcome to MetaJulia REPL")
+  lines = String[]
 
   while true
     print(">> ")
-    input = readline()
+    input = read_multiline_input()#readline()
 
     if input == "exit"
       break
@@ -115,6 +116,22 @@ function metajulia_eval(expr)
       return last
     end
   end
+end
+
+function read_multiline_input()
+
+  lines = String[]
+
+  while true
+      input = readline()      
+      if input == ""
+          break
+      end
+      push!(lines, input)
+  end
+  
+  return join(lines, "\n")
+
 end
 
 
