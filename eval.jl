@@ -3,6 +3,7 @@
 include("scope.jl")
 include("function.jl")
 include("fexpr.jl")
+include("reflection.jl")
 
 PrimitiveType = Union{Number, Bool, AbstractArray, AbstractString}
 
@@ -169,9 +170,18 @@ end
 
 function metajulia_eval(::Val{sym}, expr::Expr, scope::Scope) where sym
   var = lookup(scope, sym)
+  if isa(var, PrimitiveType)
+    return var
+  end
+  result = nothing
   if isa(var, FuncDef)
     for (arg, val) in zip(var.args, expr.args[2:end])
       bind!(var.scope, arg, metajulia_eval(val, scope))
+    end
+  end
+  if isa(var, FExpr)
+    for (arg, val) in zip(var.args, expr.args[2:end])
+      bind!(var.scope, arg, quotify(val))
     end
   end
   result = metajulia_eval(var.body, var.scope)
@@ -202,22 +212,15 @@ function metajulia_eval(::Val{:quote}, expr::Expr, scope::Scope)
   return intrplt
 end
 
-# Interpolation of expressions
-function interpolate!(expr::Expr, scope::Scope)
-  intrplt = expr
-  if expr.head == :$
-    eval = metajulia_eval(expr, scope)
-    intrplt = Meta.parse(string(eval))
-  else
-    for i in 1:length(intrplt.args)
-      if isa(intrplt.args[i], Expr)
-        intrplt.args[i] = interpolate!(intrplt.args[i], scope)
-      end
-    end
-  end
-  return intrplt
-end
-
 function metajulia_eval(::Val{:$}, expr::Expr, scope::Scope)
   return metajulia_eval(expr.args[1], scope)
+end
+
+function metajulia_eval(::Val{:(:=)}, expr::Expr, scope::Scope)
+  sym = expr.args[1].args[1]
+  args = expr.args[1].args[2:end]
+  body = expr.args[2]
+  val = fexpr_definition(args, body, scope)
+  bind!(scope, sym, val) 
+  return val
 end

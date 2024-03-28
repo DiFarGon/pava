@@ -12,7 +12,7 @@ function metajulia_repl()
     parsed = Meta.parse(input)
     output = metajulia_eval(parsed, scope)
     if isa(output, FuncDef)
-      println("<function")
+      println("<function>")
     elseif isa(output, FExpr)
       println("<fexpr>")
     else
