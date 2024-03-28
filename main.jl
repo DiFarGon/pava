@@ -11,7 +11,13 @@ function metajulia_repl()
   while (input = get_input()) != ""
     parsed = Meta.parse(input)
     output = metajulia_eval(parsed, scope)
-    isa(output, FuncDef) ? println("<function>") : println(output)
+    if isa(output, FuncDef)
+      println("<function")
+    elseif isa(output, FExpr)
+      println("<fexpr>")
+    else
+      println(output)
+    end
   end
 end
 

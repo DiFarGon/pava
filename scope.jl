@@ -9,7 +9,7 @@ function init_scope()
   return Scope(nothing, Dict())
 end
 
-function bind(scope::Scope, sym::Symbol, val)
+function bind!(scope::Scope, sym::Symbol, val)
   scope.bindings[sym] = val
 end
 
