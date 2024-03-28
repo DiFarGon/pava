@@ -1,3 +1,5 @@
+# This file contains the definition of the FExpr type and the fexpr_definition function.
+
 struct FExpr
   args::Array{Union{Symbol, Expr}}
   body::Union{Symbol, Expr}

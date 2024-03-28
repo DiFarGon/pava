@@ -11,10 +11,14 @@ function metajulia_repl()
   while (input = get_input()) != ""
     parsed = Meta.parse(input)
     output = metajulia_eval(parsed, scope)
-    if isa(output, FuncDef)
+    if isa(output, AbstractString)
+      println("\"$output\"")
+    elseif isa(output, FuncDef)
       println("<function>")
     elseif isa(output, FExpr)
       println("<fexpr>")
+    elseif isa(output, Macro)
+      println("<macro>")
     else
       isnothing(output) ? nothing : println(output)
     end

@@ -1,3 +1,5 @@
+# This file contains some functions useful for reflection and metaprogramming.
+
 # Interpolation of expressions
 function interpolate!(expr::Expr, scope::Scope)
   intrplt = expr
@@ -14,10 +16,12 @@ function interpolate!(expr::Expr, scope::Scope)
   return intrplt
 end
 
+# Quoting expression
 function quot(expr::Union{Symbol, Expr, Number, String})
   return Meta.quot(expr)
 end
 
+# Unquoting expression
 function unquot(expr::Expr)
   return expr.args[1]
 end
