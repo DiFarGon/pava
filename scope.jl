@@ -6,10 +6,7 @@ struct Scope
 end
 
 function init_scope()
-  scope = Scope(nothing, Dict())
-  eval_def = function_definition([:x], (:x), scope)
-  bind!(scope, :eval, eval_def)
-  return scope
+  return Scope(nothing, Dict())
 end
 
 function bind!(scope::Scope, sym::Symbol, val)

@@ -133,7 +133,7 @@ function metajulia_eval(::Val{:let}, expr::Expr, scope::Scope)
 end
 
 function metajulia_eval(::Val{:(=)}, expr::Expr, scope::Scope)
-  if isa(expr.args[1], Expr) && length(expr.args[1].args) > 1
+  if isa(expr.args[1], Expr)
     sym = expr.args[1].args[1]
     args::Vector{Symbol} = []
     for arg in expr.args[1].args[2:end]
@@ -163,10 +163,10 @@ function metajulia_eval(::Val{:global}, expr::Expr, scope::Scope)
     val = nothing
     if expr.args[1].head == :(=)
       funcargs::Vector{Symbol} = args[1].args[2:end]
-      val = function_definition(funcargs, body, scope)
+      val = function_definition(funcargs, body, global_scope(scope))
     else
       fexprargs::Vector{Any} = args[1].args[2:end]
-      val = fexpr_definition(fexprargs, body, scope)
+      val = fexpr_definition(fexprargs, body, global_scope(scope))
     end
     bind!(global_scope(scope), name, val)
     return val
@@ -184,13 +184,14 @@ function metajulia_eval(::Val{sym}, expr::Expr, scope::Scope) where sym
     for (arg, val) in zip(var.args, expr.args[2:end])
       bind!(var.scope, arg, metajulia_eval(val, scope))
     end
+    result = metajulia_eval(var.body, var.scope)
   end
   if isa(var, FExpr)
     for (arg, val) in zip(var.args, expr.args[2:end])
-      bind!(var.scope, arg, quotify(val))
+      bind!(var.scope, arg, quot(val))
     end
+    result = metajulia_eval(var.body, scope)
   end
-  result = metajulia_eval(var.body, var.scope)
   return result
 end
 
@@ -231,9 +232,28 @@ function metajulia_eval(::Val{:(:=)}, expr::Expr, scope::Scope)
   return val
 end
 
+
+function metajulia_eval(::Val{:eval}, expr::Expr, scope::Scope)
+  arg = expr.args[2]
+  if isa(arg, Symbol)
+    arg = lookup(scope, arg)
+  end
+  while isa(arg, Expr)
+    if arg.head == :quote
+      arg = unquot(arg)
+    end
+    arg = metajulia_eval(arg, scope)
+  end
+  return arg
+end
+
 function metajulia_eval(::Val{:println}, expr::Expr, scope::Scope)
   for arg in expr.args[2:end]
-    print(metajulia_eval(arg, scope), " ")
+    toprint = metajulia_eval(arg, scope)
+    if isa(toprint, Expr) && toprint.head == :quote
+      toprint = unquot(toprint)
+    end
+    print(toprint, " ")
   end
   print("\n")
 end
