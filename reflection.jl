@@ -14,6 +14,6 @@ function interpolate!(expr::Expr, scope::Scope)
   return intrplt
 end
 
-function quotify(expr::Union{Symbol, Expr})
+function quotify(expr::Union{Symbol, Expr, Number, String})
   return Meta.quot(expr)
 end

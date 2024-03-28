@@ -2,10 +2,10 @@
 
 struct FuncDef
   args::Array{Symbol, 1}
-  body::Expr
+  body::Union{Symbol, Expr}
   scope::Scope
 end
 
-function function_definition(args::Array{Symbol, 1}, body::Expr, scope)
+function function_definition(args::Array{Symbol, 1}, body::Union{Symbol, Expr}, scope)
   return FuncDef(args, body, scope)
 end

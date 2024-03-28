@@ -159,9 +159,15 @@ function metajulia_eval(::Val{:global}, expr::Expr, scope::Scope)
     return val
   else
     name = args[1].args[1]
-    funcargs::Vector{Symbol} = args[1].args[2:end]
     body = args[2]
-    val = function_definition(funcargs, body, scope)
+    val = nothing
+    if expr.args[1].head == :(=)
+      funcargs::Vector{Symbol} = args[1].args[2:end]
+      val = function_definition(funcargs, body, scope)
+    else
+      fexprargs::Vector{Any} = args[1].args[2:end]
+      val = fexpr_definition(fexprargs, body, scope)
+    end
     bind!(global_scope(scope), name, val)
     return val
   end
@@ -223,4 +229,11 @@ function metajulia_eval(::Val{:(:=)}, expr::Expr, scope::Scope)
   val = fexpr_definition(args, body, scope)
   bind!(scope, sym, val) 
   return val
+end
+
+function metajulia_eval(::Val{:println}, expr::Expr, scope::Scope)
+  for arg in expr.args[2:end]
+    print(metajulia_eval(arg, scope), " ")
+  end
+  print("\n")
 end

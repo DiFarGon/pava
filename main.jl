@@ -16,7 +16,7 @@ function metajulia_repl()
     elseif isa(output, FExpr)
       println("<fexpr>")
     else
-      println(output)
+      isnothing(output) ? nothing : println(output)
     end
   end
 end
